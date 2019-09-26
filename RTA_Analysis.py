@@ -67,6 +67,8 @@ def BadSec_BS_MU_ALPM(RSSFile, LowCapPerAlpm, NumDB2Proccess, PassedBSsTrh, Outp
                Current_alpm_file_name = row[0]
                print('Analysing alpm file for RSS: ' +  Current_alpm_file_name)
                df_db[i] = pd.DataFrame(columns = RSS_Tbl.columns)
+          if ("HMUS median per Base for All Files" in str(row[0])):
+               break
           if ("Median of HMUs per Bases" in str(row[0])):
                #Got Only MU that passed >= PassedBSsTrh
                df_db[i] = df_db[i][df_db[i].notnull().sum(axis=1)>PassedBSsTrh]
@@ -83,8 +85,6 @@ def BadSec_BS_MU_ALPM(RSSFile, LowCapPerAlpm, NumDB2Proccess, PassedBSsTrh, Outp
           else:
                df_db[i].loc[j] = RSS_Tbl.iloc[k] #append new row
                j = j + 1
-          if ("HMUS median per Base for All Files" in str(row[0])):
-               break
           k = k+1
 
      #Part2: Create array of MinCap dataframes. DataFrame per alpm.db
@@ -113,7 +113,7 @@ def BadSec_BS_MU_ALPM(RSSFile, LowCapPerAlpm, NumDB2Proccess, PassedBSsTrh, Outp
           k = k+1
      #Part3: For each alpm file (represented by pair of : )
      BadSec_DF = {}
-     for n in range(0, NumDB2Proccess): #Loop over alpm Files
+     for n in range(0, min (i+1, NumDB2Proccess)): #Loop over alpm Files
           BadSec_DF[n] = df_db[n]
           for index, row in df_db[n].iterrows(): #Loop over  MUs that visited more than Thr BSs 
                CurrentMU = row[0]
