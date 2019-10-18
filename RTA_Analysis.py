@@ -138,7 +138,7 @@ def BadSec_BS_MU_ALPM(RSSFile, LowCapPerAlpm, NumDB2Proccess, PassedBSsTrh, Outp
                plt.savefig(Output_DirName + '\\' + 'BadSecondsStackedBar' + Current_alpm_file_name + '.jpg')
           else:
                print("No trains that passes 5 BSs in the file " + Current_alpm_file_name)
-     plt.show()
+     #plt.show()
 
 def Visualize_BS_MedianOfMaxRSS(RSSFile_FromROAD, Output_DirName):
      global Site_Name
@@ -148,7 +148,8 @@ def Visualize_BS_MedianOfMaxRSS(RSSFile_FromROAD, Output_DirName):
      #Find line with Overall_MedianRSS_PerBS
      Overall_MedianRSS_PerBS = RSS_Tbl[RSS_Tbl.iloc[:,0].str.contains("HMUS median per Base for All Files")==True]
      #Drop first and last column
-     Overall_MedianRSS_PerBS.drop(Overall_MedianRSS_PerBS.columns[0], axis=1, inplace=True)
+     tmp = Overall_MedianRSS_PerBS.drop(Overall_MedianRSS_PerBS.columns[0], axis=1) #useage of inplace=True cause to warning "SettingWithCopyWarning:"
+     Overall_MedianRSS_PerBS = tmp
      Overall_MedianRSS_PerBS.drop(Overall_MedianRSS_PerBS.columns[len(Overall_MedianRSS_PerBS.columns)-1], axis=1, inplace=True)
      #remove "\"
      Overall_MedianRSS_PerBS.replace(regex='\'', value='', inplace=True)
@@ -171,15 +172,15 @@ def Visualize_BS_MedianOfMaxRSS(RSSFile_FromROAD, Output_DirName):
      #print(NumberOfStreams)
      #Create different dataframe per chain
      with open(Output_DirName + '\\' + 'ProccessedRSSTbleBS'  + '.csv', mode='w') as ProccessedRSS_File:
-          Overall_MedianRSS_PerBS_Ch1 = Overall_MedianRSS_PerBS.replace(regex='\/.*', value='').astype('int')
+          Overall_MedianRSS_PerBS_Ch1 = Overall_MedianRSS_PerBS.replace(regex='\\/.*', value='').astype('int')
           Overall_MedianRSS_PerBS_Ch1.to_csv(ProccessedRSS_File, header=True, line_terminator='\n')
 
-          Overall_MedianRSS_PerBS_Ch2 = Overall_MedianRSS_PerBS.replace(regex='^-[0-9][0-9]\/|^-[0-9][0-9][0-9]\/', value='')
-          Overall_MedianRSS_PerBS_Ch2 = Overall_MedianRSS_PerBS_Ch2.replace(regex='\/.*', value='').astype('int')
+          Overall_MedianRSS_PerBS_Ch2 = Overall_MedianRSS_PerBS.replace(regex='^-[0-9][0-9]\\/|^-[0-9][0-9][0-9]\\/', value='')
+          Overall_MedianRSS_PerBS_Ch2 = Overall_MedianRSS_PerBS_Ch2.replace(regex='\\/.*', value='').astype('int')
           Overall_MedianRSS_PerBS_Ch2.to_csv(ProccessedRSS_File, header=False, line_terminator='\n')
 
           if (NumberOfStreams == 3):
-               Overall_MedianRSS_PerBS_Ch3 = Overall_MedianRSS_PerBS.replace(regex='.*\/', value='').astype('int')
+               Overall_MedianRSS_PerBS_Ch3 = Overall_MedianRSS_PerBS.replace(regex='.*\\/', value='').astype('int')
                Overall_MedianRSS_PerBS_Ch3.to_csv(ProccessedRSS_File, header=False, line_terminator='\n')
 
           #Plot in one chart ALL Chains
@@ -217,7 +218,6 @@ def Visualize_BS_MedianOfMaxRSS(RSSFile_FromROAD, Output_DirName):
                plt.legend(loc='upper right')
           plt.savefig(Output_DirName + '\\' + 'MedianMaxRSSperBS2' + '.jpg')
 
-          plt.show()
      ProccessedRSS_File.close()
      return
 
@@ -227,7 +227,7 @@ def Visualize_MU_MedianOfMaxRSS(RSSFile_FromROAD, Output_DirName):
      #print(RSS_Tbl.head(1))
      RSS_Tbl.set_index(RSS_Tbl.columns[0], inplace=True) # set column 0 of RSS_Tble to be index
      row_index = RSS_Tbl.index.get_loc('HMU Median for all Files') #find row where MU median RSS is
-     print('rox_index =',row_index )
+     #print('rox_index =',row_index )
      MU_MedianOfMax_DF = RSS_Tbl.iloc[row_index:RSS_Tbl.shape[0], 0:1] #get apropriate subdataframe
      MU_MedianOfMax_DF.dropna(axis=0, how='any', thresh=None, subset=None, inplace=True) #remove empty strings
 
@@ -237,16 +237,16 @@ def Visualize_MU_MedianOfMaxRSS(RSSFile_FromROAD, Output_DirName):
 
      #Create different dataframe per chain
      with open(Output_DirName + '\\' + 'ProccessedRSSTbleMU'  + '.csv', mode='w') as ProccessedRSS_File:
-          Overall_MedianRSS_PerMU_Ch1 = MU_MedianOfMax_DF_T.replace(regex='\/.*', value='').astype('int')
+          Overall_MedianRSS_PerMU_Ch1 = MU_MedianOfMax_DF_T.replace(regex='\\/.*', value='').astype('int')
           Overall_MedianRSS_PerMU_Ch1.to_csv(ProccessedRSS_File, header=True, line_terminator='\n')
-          print(Overall_MedianRSS_PerMU_Ch1.head(5))
+          #print(Overall_MedianRSS_PerMU_Ch1.head(2))
 
-          Overall_MedianRSS_PerMU_Ch2 = MU_MedianOfMax_DF_T.replace(regex='^-[0-9][0-9]\/|^-[0-9][0-9][0-9]\/', value='')
-          Overall_MedianRSS_PerMU_Ch2 = Overall_MedianRSS_PerMU_Ch2.replace(regex='\/.*', value='').astype('int')
+          Overall_MedianRSS_PerMU_Ch2 = MU_MedianOfMax_DF_T.replace(regex='^-[0-9][0-9]\\/|^-[0-9][0-9][0-9]\\/', value='')
+          Overall_MedianRSS_PerMU_Ch2 = Overall_MedianRSS_PerMU_Ch2.replace(regex='\\/.*', value='').astype('int')
           Overall_MedianRSS_PerMU_Ch2.to_csv(ProccessedRSS_File, header=False, line_terminator='\n')
 
           if (NumberOfStreams == 3):
-               Overall_MedianRSS_PerMU_Ch3 = MU_MedianOfMax_DF_T.replace(regex='.*\/', value='').astype('int')
+               Overall_MedianRSS_PerMU_Ch3 = MU_MedianOfMax_DF_T.replace(regex='.*\\/', value='').astype('int')
                Overall_MedianRSS_PerMU_Ch3.to_csv(ProccessedRSS_File, header=False, line_terminator='\n')
 
           plt.figure(figsize=(20, 10))
@@ -275,7 +275,6 @@ def Visualize_MU_MedianOfMaxRSS(RSSFile_FromROAD, Output_DirName):
                plt.axhline(y=Overall_MedianRSS_PerMU_Ch3.iloc[0,:].median(), color='g', linestyle=':', label='Median')
           plt.legend(loc='upper right')
           plt.savefig(Output_DirName + '\\' + 'MedianMaxRSSperMU_2' + '.jpg')
-          plt.show()
      ProccessedRSS_File.close()
      return
 
@@ -349,39 +348,101 @@ def Write_OverallALPMs_AnalyticsTablesToFile():
 
           Analysis_File.write("*************************Count number of intervals when Band seconds strted at IBHO moment with correlation to RSS *************************************************\n")
           LowCapacityTbl[ (LowCapacityTbl.PrevIBHO < 1) & (LowCapacityTbl.PrevIBHO > -1)].groupby(['MedianRSSLevel-H/M/L'])['PrevIBHO'].count().to_csv(Analysis_File, header=True,  line_terminator='\n')
+          Analysis_File.write("************************Bad seconds in station analaysis**************************************************\n")
+
+          Analysis_File.write("************************Bad seconds in context active & passive MU RSS **************************************************\n")
+          LowCapacityTbl[(LowCapacityTbl.inStation != 0)].groupby(['MedianRSSLevel-H/M/L', 'PeerMedianRSSLevel', 'Samebase'])['intervalSec'].sum().to_csv(Analysis_File, header=True,  line_terminator='\n')
+          Analysis_File.write("**************************************************************************\n")
+
+          Analysis_File.write("*************************pivot_table Bad second dependancy RSS vs BS *************************************************\n")
+          MyMU_PeerMU_PivotTable = LowCapacityTbl.pivot_table( index=["MedianRSSLevel-H/M/L"], columns=["PeerMedianRSSLevel"], values=["intervalSec"], aggfunc=np.sum, fill_value=0)
+          tmp1 = MyMU_PeerMU_PivotTable.reindex (index=['Low', 'Med', 'High'], fill_value = 0)
+          MyMU_PeerMU_PivotTable = tmp1.reindex (columns=['Low', 'Med', 'High'], level=1)
+          MyMU_PeerMU_PivotTable.to_csv(Analysis_File, header=True,  line_terminator='\n')
 
           Analysis_File.close()
      return
 
 def Present_Overall_ALPM_Charts():
      LowCapacityTbl.groupby(['MedianRSSLevel-H/M/L'])['intervalSec'].sum().plot.bar(figsize=(20,20), title='All alpms Bad seconds vs RSSLevel ')
-     #plt.gcf().canvas.set_window_title('MedianRSSLevel')
+     plt.gcf().canvas.set_window_title('MedianRSSLevel')
      plt.ylabel('Bad seconds')
      plt.xlabel('RSS level (High, Median, Low)')
      plt.savefig(Output_DirName + '\\' + 'MedianRSSLevel-High Med Low' + '.jpg')
      plt.figure() 
 
+     MyMU_PeerMU_PivotTable = LowCapacityTbl.pivot_table( index=["MedianRSSLevel-H/M/L"], columns=["PeerMedianRSSLevel"], values=["intervalSec"], aggfunc=np.sum, fill_value=0)
+     tmp1 = MyMU_PeerMU_PivotTable.reindex (index=['Low', 'Med', 'High'], fill_value = 0)
+     MyMU_PeerMU_PivotTable = tmp1.reindex (columns=['Low', 'Med', 'High'], level=1)
+     #plt.gcf().canvas.set_window_title('MU Active RSS vs Passive MU RSS  Bad Sec')
 
-     LowCapacityTbl.groupby(['Direction'])['intervalSec'].sum().plot.bar(figsize=(20,20), title='All alpms Bad seconds RSSLevel vs DL, UL') 
-     #plt.gcf().canvas.set_window_title('DL/UL')
+     # plt.scatter(MyMU_PeerMU_PivotTable.index, MyMU_PeerMU_PivotTable.columns(), s=z*1, alpha=0.5)
+     # plt.ylabel('MU Passive RSS ')
+     # plt.xlabel('MU Active RSS')
+     # plt.savefig(Output_DirName + '\\' + 'MU Active RSS vs Passive MU RSS  Bad Sec' + '.jpg')
+     # plt.figure() 
+     
+     
+
+     x_data_positions  = ['Low', 'Med',  'High', 'Low', 'Med',  'High', 'Low', 'Med',  'High']
+     y_data_positions  = ['Low', 'Low','Low', 'Med', 'Med','Med', 'High', 'High','High']
+     k=0
+     BadSec =[]
+     for YY in MyMU_PeerMU_PivotTable.columns.get_level_values(1):
+          for XX in MyMU_PeerMU_PivotTable.index:
+               #print (XX, "  ", YY, MyMU_PeerMU_PivotTable.loc[ XX , ('intervalSec', YY) ], " k=", k )
+               BadSec.append( int (   MyMU_PeerMU_PivotTable.loc[ XX , ('intervalSec', YY) ]) )
+               k=k+1
+     
+     SZ = [i * 5 for i in BadSec]
+     #Create figure
+     plt.figure(figsize = (15,15))    
+     plt.gcf().canvas.set_window_title('Active RSS vs Passive RSS at Bad Seconds')    
+     plt.scatter(x_data_positions, y_data_positions, s=SZ, c='orange', label="Bad sec sum")
+     for i in range (0,9):
+          plt.text   (x_data_positions[i], y_data_positions[i], 
+          s=str(BadSec[i]) + "sec\n" + str(int(BadSec[i]/sum(BadSec)*100)) +  "%", horizontalalignment='center',verticalalignment='center' )
+     plt.xlabel("Active  MU RSS")
+     plt.ylabel("Passive (peer) MU RSS")
+     plt.savefig(Output_DirName + '\\' + 'Active MU RSS vs Passive MU RSS at Bad Seconds' + '.jpg')
+     plt.figure() 
+
+
+
+
+     LowCapacityTbl.groupby(['Direction'])['intervalSec'].sum().plot.bar(figsize=(20,20), title='All alpms Bad seconds vs DL, UL') 
+     plt.gcf().canvas.set_window_title('DL/UL')
      plt.ylabel('Bad seconds')
      plt.xlabel('UL/DL')
      plt.savefig(Output_DirName + '\\' + 'DL or UL' + '.jpg')
      plt.figure()
 
      LowCapacityTbl.groupby(['ConBase','HMUIP'])['intervalSec'].sum().unstack().plot(kind='bar',stacked=True, figsize=(20,20), title='All alpms bad seconds per BS per MU.')
-     #plt.gcf().canvas.set_window_title('BS vs MU')
+     plt.gcf().canvas.set_window_title('Bad seconds per BS per MU')
      plt.ylabel('Bad seconds')
      plt.xlabel('BS IP address (problematic BS only)')
      plt.savefig(Output_DirName + '\\' + 'BS vs MU bad seconds' + '.jpg')
      plt.figure() 
 
      LowCapacityTbl.groupby(['HMUIP'])['intervalSec'].sum().plot.bar(figsize=(15,15), title='All alpms Bad seconds per MU')
-     #plt.gcf().canvas.set_window_title('HMUIP')
+     plt.gcf().canvas.set_window_title('Bad seconds per MU')
      plt.savefig(Output_DirName + '\\' + 'HMUIP' + '.jpg')
      plt.ylabel('Bad seconds')
      plt.xlabel('MU IP address')
      plt.figure() 
+
+ 
+
+     LowCapacityTbl[ (LowCapacityTbl.PrevIBHO < 1) & (LowCapacityTbl.PrevIBHO > -1)].groupby(['MedianRSSLevel-H/M/L'])['MedianRSSLevel-H/M/L'].count().plot.bar(figsize=(20,20), title = 'Number of cases where Low Cap  interval starts @ IBHO Moment, RSS Distribution')
+     plt.gcf().canvas.set_window_title('Counts cases where Low Cap starts @ IBHO Moment, RSS Distribution')
+     plt.ylabel('Bad seconds')
+     plt.xlabel('RSS Level')
+     plt.savefig(Output_DirName + '\\' + 'LowCapacity_at_IBHO Moment_vs_RSS' + '.jpg')
+     plt.figure() 
+
+     
+     #plt.show()
+
 
      #LowCapacityTbl.groupby(['Samebase'])['intervalSec'].sum().plot.bar(figsize=(20,20), title='All alpms MUs at same BS or diffrent BS')
      #plt.gcf().canvas.set_window_title('Samebase')
@@ -395,15 +456,6 @@ def Present_Overall_ALPM_Charts():
      #LowCapacityTbl[ (LowCapacityTbl.inStation != 0)].groupby(['ConBase', 'HMUIP', 'Direction', 'MedianRSSLevel-H/M/L'])['intervalSec'].sum().plot.bar()
      #plt.gcf().canvas.set_window_title('ConBase, inStation, Direction, MedianRSSLevel-H/M/L')
      #plt.figure() 
-
-     LowCapacityTbl[ (LowCapacityTbl.PrevIBHO < 1) & (LowCapacityTbl.PrevIBHO > -1)].groupby(['MedianRSSLevel-H/M/L'])['MedianRSSLevel-H/M/L'].count().plot.bar(figsize=(20,20), title = 'Number of cases where Low Cap  interval starts @ IBHO Moment, RSS Distribution')
-     #plt.gcf().canvas.set_window_title('Counts cases where Low Cap starts @ IBHO Moment, RSS Distribution')
-     plt.ylabel('Bad seconds')
-     plt.xlabel('RSS Level')
-     plt.savefig(Output_DirName + '\\' + 'LowCapacity_at_IBHO Moment_vs_RSS' + '.jpg')
-     plt.figure() 
-
-     plt.show()
      return
 
 #Start of Main
@@ -426,80 +478,20 @@ LowCapacityTbl, MinCapacityPerALPM_DF  = PrepareLowCapacityFiltered_DF_and_File(
 if (Do_BuildMax_RSS_Graph == 'Yes'):
      Visualize_BS_MedianOfMaxRSS(RSSFile_FromROAD, Output_DirName)
      Visualize_MU_MedianOfMaxRSS(RSSFile_FromROAD, Output_DirName)
-
+     plt.show()
 
 if (Num_ALPMs_To_Prosses != 0):
      BadSec_BS_MU_ALPM(RSSFile_FromROAD, MinCapacityPerALPM_DF, Num_ALPMs_To_Prosses, Min_Num_BS_to_pass, Output_DirName)
+     plt.show()
 
 Write_OverallALPMs_AnalyticsTablesToFile()
 
 if (Do_Present_Overall_ALPM_Charts == 'Yes'):
      Present_Overall_ALPM_Charts()
-
-
-# fig, axes = plt.subplots(3, 1)
-# fig.set_size_inches(19, 15)
-# fig.suptitle('WS recording ')
-
-
-
-# df1.loc[:, "Median Sync RSS"].plot(ax=axes[0], marker='o', color='y')
-# axes[0].set_ylabel('Median Sync RSS')
-# axes[0].grid()
-
-# df1.loc[:, "Num Valid Sessions"].plot(ax=axes[1], marker='o', color='b')
-# axes[1].set_ylabel('Num Valid Sessions')
-# axes[1].grid()
-
-# df1.loc[:, "Time Offset"].plot(ax=axes[2], linestyle='--', marker='o', color='g')
-# axes[2].set_ylabel('TO (ns)')
-# axes[2].grid()
-# multi = MultiCursor(fig.canvas, (axes[0], axes[1], axes[2]), color='r', lw=1)
-
-
-#RSS_Plt = df1.loc[10:50, "Median Sync RSS"].plot(marker='o')
-#VS_Plt = df1.loc[10:50, "Num Valid Sessions"].plot( marker='o')
-#TO_Plt = df1.loc[10:50, "Time Offset"].plot( linestyle='--', marker='o')
-
-#RSS_Plt = df1.loc[10:50, "Median Sync RSS"].plot(ax=axes[0,0], marker='o' )
-#VS_Plt = RSS_Plt.twinx()
-#VS_Plt = df1.loc[10:50, "Num Valid Sessions"].plot(marker='o')
-#TO_Plt = df1.loc[10:50, "Time Offset"].plot(linestyle='--', marker='o')
-
-#plt.legend(['Median Sync RSS', 'Num Valid Sessions', 'Time Offset'])
-#RSS_Plt.set_ylabel('TO (ns)')
-
-
-
-# df3 = pd.DataFrame ( { "Median Sync RSS" : df1.loc[:, "Median Sync RSS"],  "Num Valid Sessions" : df1.loc[:, "Num Valid Sessions"], "Time Offset": df1.loc[:,"Time Offset"] })
-# print (df3)
-# print (df3.corr())
-
-# f = plt.figure(figsize=(19, 15))
-# plt.matshow(df3.corr(), fignum=f.number)
-# plt.xticks(range(df3.shape[1]), df3.columns, fontsize=14, rotation=45)
-# plt.yticks(range(df3.shape[1]), df3.columns, fontsize=14)
-# cb = plt.colorbar()
-# cb.ax.tick_params(labelsize=14)
-# plt.title('Correlation Matrix', fontsize=16)
-# plt.show()
-
-# plt.rc('grid', linestyle="-", color='red')
-# plt.grid(True) # !!! Look like plt.grid(True) shall be immediatle before plt.show()
-# g = input("Press enter") 
-
-#plt.show()
+     plt.show()
 
 
 
 
 
-# Calculate covariance for RSS & TO.
-# #input("Press Enter to quit ")
-#  insteaf of xlwriter use xlwings cause this appends new data to existing file
-# a = plt.figure('')
-# plt.add_subplot() 
-# How to use Pandas the RIGHT way to speed up your code https://towardsdatascience.com/how-to-use-pandas-the-right-way-to-speed-up-your-code-4a19bd89926d
-#https://matplotlib.org/3.1.0/gallery/subplots_axes_and_figures/subplots_demo.html
-#https://matplotlib.org/1.2.1/examples/pylab_examples/histogram_demo.html
-#heat map https://seaborn.pydata.org/generated/seaborn.heatmap.html
+
