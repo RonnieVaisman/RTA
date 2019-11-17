@@ -35,18 +35,23 @@ def PrepareOutputDir():
      os.mkdir(Output_DirName)
      return Output_DirName
 
+
 def Discover_ROAD_Input(FileName):
      global UL_Tresh, DL_Tresh, Min_Interval_Time_Threh
-     maketrainsim_input_string = pd.read_csv(FileName, sep =' ', nrows = 0)
-     UL_Tresh = round(float(maketrainsim_input_string.columns[9]))
-     DL_Tresh = round(float(maketrainsim_input_string.columns[12]))
-     Min_Interval_Time_Threh = int(maketrainsim_input_string.columns[15])
+     
+     file = open(FileName,"r")
+     line = file.readline()
+     fields = line.split(' ')
+     UL_Tresh = int(fields[9])
+     DL_Tresh = int(fields[12])
+     Min_Interval_Time_Threh = int(fields[15])
      print("UL Threshould (Mbps) = {0};  DL Threshould (Mbps) = {1}; Minimum Interval (sec) = {2}".format( UL_Tresh, DL_Tresh, Min_Interval_Time_Threh))
 
      DL_Ration = 100 - UL_Ration
      UL_DL_Ration = UL_Ration/DL_Ration
      print ("UL_Ration/DL_Ration = {0}".format(UL_DL_Ration))
      return 
+
 
 def BadSec_BS_MU_ALPM(RSSFile, LowCapPerAlpm, NumDB2Proccess, PassedBSsTrh, Output_DirName):
      global UL_Tresh, DL_Tresh, Min_Interval_Time_Threh
@@ -154,7 +159,9 @@ def Visualize_BS_MedianOfMaxRSS(RSSFile_FromROAD, Output_DirName):
      #remove "\"
      Overall_MedianRSS_PerBS.replace(regex='\'', value='', inplace=True)
      #Calc number of streams
-     NumberOfStreams = str(Overall_MedianRSS_PerBS.iloc[0,1]).count('-') 
+     #NumberOfStreams = str(Overall_MedianRSS_PerBS.iloc[0,1]).count('-') 
+     NumberOfStreams = 2
+     print("Due crash analysis  of UTA_Nov_2019 data, inserted limtation to display only 2 Chains, TBF")
 
      #remove from BS IP address first 3 nibles.  It permit drow x label of graph more compact.
      for l in range(0, len(Overall_MedianRSS_PerBS.columns)):
@@ -185,19 +192,22 @@ def Visualize_BS_MedianOfMaxRSS(RSSFile_FromROAD, Output_DirName):
 
           #Plot in one chart ALL Chains
           plt.figure(figsize=(20, 10))
-          plt.suptitle(Site_Name + ' BS Median of Max RSS over all passed MUs ')
+          plt.suptitle(Site_Name + ' BS Median of Max RSS measured by all passed MUs ')
           plt.plot(Overall_MedianRSS_PerBS_Ch1.columns, Overall_MedianRSS_PerBS_Ch1.iloc[0,:], marker='o', color='r', label='Ch1')
           plt.plot(Overall_MedianRSS_PerBS_Ch2.columns, Overall_MedianRSS_PerBS_Ch2.iloc[0,:], marker='o', color='b', label='Ch2')
           plt.xticks(rotation='vertical') #Need for site with big num of BS (like WH7)
           if (NumberOfStreams == 3):
                plt.plot(Overall_MedianRSS_PerBS_Ch3.columns, Overall_MedianRSS_PerBS_Ch3.iloc[0,:], marker='o', color='g', label='Ch3')
           plt.legend(loc='upper right')
+          plt.xlabel('BS\'s IP address (last octet)')
+          
+
           plt.savefig(Output_DirName + '\\' + 'MedianMaxRSSperBS1' + '.jpg')
           
 
           #Plot in chart per chain
           plt.figure(figsize=(20, 10))
-          plt.suptitle(Site_Name + ' BS Median of Max RSS over all passed MUs ')
+          plt.suptitle(Site_Name + ' BS Median of Max RSS measured by passed MUs ')
 
           plt.subplot(3,1,1)
           plt.plot(Overall_MedianRSS_PerBS_Ch1.columns, Overall_MedianRSS_PerBS_Ch1.iloc[0,:], marker='o', color='r', label='Ch1')
@@ -217,6 +227,7 @@ def Visualize_BS_MedianOfMaxRSS(RSSFile_FromROAD, Output_DirName):
                plt.xticks(rotation='vertical') #Need for site with big num of BS (like WH7)
                plt.legend(loc='upper right')
           plt.savefig(Output_DirName + '\\' + 'MedianMaxRSSperBS2' + '.jpg')
+          plt.xlabel('BS\'s IP address (last octet)')
 
      ProccessedRSS_File.close()
      return
@@ -235,6 +246,10 @@ def Visualize_MU_MedianOfMaxRSS(RSSFile_FromROAD, Output_DirName):
      NumberOfStreams = str(MU_MedianOfMax_DF.iloc[0,0]).count('-') #Calc number of streams
      MU_MedianOfMax_DF_T = MU_MedianOfMax_DF.transpose()
 
+     #remove from MU IP address first 3 nibles.  It permit drow x label of graph more compact.
+     for l in range(0, len(MU_MedianOfMax_DF_T.columns)):
+          MU_MedianOfMax_DF_T.rename(columns = {MU_MedianOfMax_DF_T.columns[l]:re.sub(r'.*\..*\..*\.','',MU_MedianOfMax_DF_T.columns[l])}, inplace = True)
+
      #Create different dataframe per chain
      with open(Output_DirName + '\\' + 'ProccessedRSSTbleMU'  + '.csv', mode='w') as ProccessedRSS_File:
           Overall_MedianRSS_PerMU_Ch1 = MU_MedianOfMax_DF_T.replace(regex='\\/.*', value='').astype('int')
@@ -250,17 +265,20 @@ def Visualize_MU_MedianOfMaxRSS(RSSFile_FromROAD, Output_DirName):
                Overall_MedianRSS_PerMU_Ch3.to_csv(ProccessedRSS_File, header=False, line_terminator='\n')
 
           plt.figure(figsize=(20, 10))
-          plt.suptitle(Site_Name + ' MU Median of Max RSS over all passed BSs ')
+          plt.suptitle(Site_Name + ' HMU\'s Median of Max RSS over all passed BSs ')
+          
           plt.plot(Overall_MedianRSS_PerMU_Ch1.columns, Overall_MedianRSS_PerMU_Ch1.iloc[0,:], marker='o', color='r', label='Ch1')
           plt.plot(Overall_MedianRSS_PerMU_Ch2.columns, Overall_MedianRSS_PerMU_Ch2.iloc[0,:], marker='o', color='b', label='Ch2')
           if (NumberOfStreams == 3):
                plt.plot(Overall_MedianRSS_PerMU_Ch3.columns, Overall_MedianRSS_PerMU_Ch3.iloc[0,:], marker='o', color='g', label='Ch3')
           plt.legend(loc='upper right')
+          plt.xlabel('HMU\'s IP address (last octet)')
           plt.savefig(Output_DirName + '\\' + 'MedianMaxRSSperMU_1' + '.jpg')
           
           
+          
           plt.figure(figsize=(20, 10))
-          plt.suptitle(Site_Name + ' MU Median of Max RSS over all passed BSs ')
+          plt.suptitle(Site_Name + ' HMU\'s Median of Max RSS over all passed BSs ')
           plt.subplot(3,1,1)
           plt.plot(Overall_MedianRSS_PerMU_Ch1.columns, Overall_MedianRSS_PerMU_Ch1.iloc[0,:], marker='o', color='r', label='Ch1')
           plt.axhline(y=Overall_MedianRSS_PerMU_Ch1.iloc[0,:].median(), color='r', linestyle=':', label='Median')
@@ -274,6 +292,7 @@ def Visualize_MU_MedianOfMaxRSS(RSSFile_FromROAD, Output_DirName):
                plt.plot(Overall_MedianRSS_PerMU_Ch3.columns, Overall_MedianRSS_PerMU_Ch3.iloc[0,:], marker='o', color='g', label='Ch3')
                plt.axhline(y=Overall_MedianRSS_PerMU_Ch3.iloc[0,:].median(), color='g', linestyle=':', label='Median')
           plt.legend(loc='upper right')
+          plt.xlabel('HMU\'s IP address (last octet)')
           plt.savefig(Output_DirName + '\\' + 'MedianMaxRSSperMU_2' + '.jpg')
      ProccessedRSS_File.close()
      return
@@ -388,18 +407,21 @@ def Present_Overall_ALPM_Charts():
      y_data_positions  = ['Low', 'Low','Low', 'Med', 'Med','Med', 'High', 'High','High']
      k=0
      BadSec =[]
+     SZ = [0] * 9
+
+  
      for YY in MyMU_PeerMU_PivotTable.columns.get_level_values(1):
           for XX in MyMU_PeerMU_PivotTable.index:
                #print (XX, "  ", YY, MyMU_PeerMU_PivotTable.loc[ XX , ('intervalSec', YY) ], " k=", k )
                BadSec.append( int (   MyMU_PeerMU_PivotTable.loc[ XX , ('intervalSec', YY) ]) )
+               SZ[k] = BadSec[k] * 5 # Set buble size proportional to BadSec value
                k=k+1
      
-     SZ = [i * 5 for i in BadSec]
      #Create figure
      plt.figure(figsize = (15,15))    
      plt.gcf().canvas.set_window_title('Active RSS vs Passive RSS at Bad Seconds')    
      plt.scatter(x_data_positions, y_data_positions, s=SZ, c='orange', label="Bad sec sum")
-     for i in range (0,9):
+     for i in range (0,len (BadSec)):
           plt.text   (x_data_positions[i], y_data_positions[i], 
           s=str(BadSec[i]) + "sec\n" + str(int(BadSec[i]/sum(BadSec)*100)) +  "%", horizontalalignment='center',verticalalignment='center' )
      plt.xlabel("Active  MU RSS")
