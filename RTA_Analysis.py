@@ -14,7 +14,7 @@ sns.set()
 
 def Handle_RTA_Input():
      global MinCapacityFile_FromROAD, RSSFile_FromROAD,  Site_Name, UL_Ration, UL_DL_Ration_Anomaly_Threshould, Min_Num_BS_to_pass, \
-     Do_BuildMax_RSS_Graph, Num_ALPMs_To_Prosses, Do_Present_Overall_ALPM_Charts
+     Do_BuildMax_RSS_Graph, Num_ALPMs_To_Prosses, Do_Present_Overall_ALPM_Charts, NumberBytesToPresentIn_MU_IP
 
      RTA_Input_Params = pd.read_csv('RTA_Input.csv')
      MinCapacityFile_FromROAD = RTA_Input_Params.loc[0,'MinCapacity File Name']
@@ -26,6 +26,7 @@ def Handle_RTA_Input():
      Do_BuildMax_RSS_Graph          = RTA_Input_Params.loc [0,'Do_BuildMax_RSS_Graph(For BS and MU)']
      Num_ALPMs_To_Prosses           = RTA_Input_Params.loc [0,'Number Of ALPM files to Analize']
      Do_Present_Overall_ALPM_Charts = RTA_Input_Params.loc [0,'Do_Present_Overall_ALPM_Charts']
+     NumberBytesToPresentIn_MU_IP   = RTA_Input_Params.loc [0,'NumberBytesToPresentIn_MU_IP']
      return
 
 def PrepareOutputDir():
@@ -148,7 +149,7 @@ def BadSec_BS_MU_ALPM(RSSFile, LowCapPerAlpm, NumDB2Proccess, PassedBSsTrh, Outp
 def Visualize_BS_MedianOfMaxRSS(RSSFile_FromROAD, Output_DirName):
      global Site_Name
      RSS_Tbl = pd.read_csv(RSSFile_FromROAD)
-     #print(RSS_Tbl.head(1))
+     print(RSS_Tbl.head(10))
 
      #Find line with Overall_MedianRSS_PerBS
      Overall_MedianRSS_PerBS = RSS_Tbl[RSS_Tbl.iloc[:,0].str.contains("HMUS median per Base for All Files")==True]
@@ -160,8 +161,8 @@ def Visualize_BS_MedianOfMaxRSS(RSSFile_FromROAD, Output_DirName):
      Overall_MedianRSS_PerBS.replace(regex='\'', value='', inplace=True)
      #Calc number of streams
      #NumberOfStreams = str(Overall_MedianRSS_PerBS.iloc[0,1]).count('-') 
-     NumberOfStreams = 2
-     print("Due crash analysis  of UTA_Nov_2019 data, inserted limtation to display only 2 Chains, TBF")
+     NumberOfStreams = 3
+     print("Due crash analysis  of UTA_Nov_2019 data, inserted limtation to display only 2 Chains, TBD")
 
      #remove from BS IP address first 3 nibles.  It permit drow x label of graph more compact.
      for l in range(0, len(Overall_MedianRSS_PerBS.columns)):
@@ -175,7 +176,7 @@ def Visualize_BS_MedianOfMaxRSS(RSSFile_FromROAD, Output_DirName):
      xxx = Overall_MedianRSS_PerBS.dropna(axis=1, how='any', thresh=None, subset=None) #remove empty columns
      Overall_MedianRSS_PerBS = xxx
 
-     #print(Overall_MedianRSS_PerBS.head(1))
+     print(Overall_MedianRSS_PerBS.head(10))
      #print(NumberOfStreams)
      #Create different dataframe per chain
      with open(Output_DirName + '\\' + 'ProccessedRSSTbleBS'  + '.csv', mode='w') as ProccessedRSS_File:
@@ -246,9 +247,11 @@ def Visualize_MU_MedianOfMaxRSS(RSSFile_FromROAD, Output_DirName):
      NumberOfStreams = str(MU_MedianOfMax_DF.iloc[0,0]).count('-') #Calc number of streams
      MU_MedianOfMax_DF_T = MU_MedianOfMax_DF.transpose()
 
-     #remove from MU IP address first 3 nibles.  It permit drow x label of graph more compact.
+     #remove from MU IP address first N bytes.  It permit drow x label of graph more compact.
+     BytesToRemoveFromIpAddres = 4 - NumberBytesToPresentIn_MU_IP
      for l in range(0, len(MU_MedianOfMax_DF_T.columns)):
-          MU_MedianOfMax_DF_T.rename(columns = {MU_MedianOfMax_DF_T.columns[l]:re.sub(r'.*\..*\..*\.','',MU_MedianOfMax_DF_T.columns[l])}, inplace = True)
+          for q in range (0, BytesToRemoveFromIpAddres):
+               MU_MedianOfMax_DF_T.rename(columns = {MU_MedianOfMax_DF_T.columns[l]:re.sub(r'.*?\.','',MU_MedianOfMax_DF_T.columns[l], 1)}, inplace = True)
 
      #Create different dataframe per chain
      with open(Output_DirName + '\\' + 'ProccessedRSSTbleMU'  + '.csv', mode='w') as ProccessedRSS_File:
@@ -481,11 +484,11 @@ def Present_Overall_ALPM_Charts():
      return
 
 #Start of Main
-print ("RTA Analysis - v1 ")
+print ("RTA Analysis - v1.1 ")
 
 #Initilize variables
-MinCapacityFile_FromROAD, RSSFile_FromROAD, Site_Name,   UL_Ration, UL_DL_Ration_Anomaly_Threshould, Min_Num_BS_to_pass, Num_ALPMs_To_Prosses, Do_BuildMax_RSS_Graph, Do_Present_Overall_ALPM_Charts = \
-"empty str",              "empty str",      "empty str", 70,        20,                              5,                  1,                    'No',                  'No'                   
+MinCapacityFile_FromROAD, RSSFile_FromROAD, Site_Name,   UL_Ration, UL_DL_Ration_Anomaly_Threshould, Min_Num_BS_to_pass, Num_ALPMs_To_Prosses, Do_BuildMax_RSS_Graph, Do_Present_Overall_ALPM_Charts, NumberBytesToPresentIn_MU_IP = \
+"empty str",              "empty str",      "empty str", 70,        20,                              5,                  1,                    'No',                  'No',                             1                 
 
 Handle_RTA_Input()
 
